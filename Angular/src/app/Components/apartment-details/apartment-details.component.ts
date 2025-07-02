@@ -19,6 +19,9 @@ import { FormsModule } from '@angular/forms';
 })
 export class ApartmentDetailsComponent implements OnInit {
   apartment: any = null;
+  mediaGallery: string[] = [];
+  mainMedia: string = '';
+
   error: string | null = null;
   mainPhoto: string = 'assets/default-image.jpg';
   safeVideoUrl: SafeResourceUrl | null = null;
@@ -67,14 +70,28 @@ export class ApartmentDetailsComponent implements OnInit {
       next: (data) => {
         this.apartment = data;
         this.selectedStatus = data.status;
-        this.mainPhoto = data.photos && data.photos.length > 0 ? data.photos[0] : 'assets/default-image.jpg';
-        console.log(this.apartment.video)
+  
+        // Combine photos and video into a unified gallery
+        this.mediaGallery = data.photos ? [...data.photos] : [];
+        if (data.video) {
+          this.mediaGallery.push(data.video);
+        }
+        console.log('Media Gallery:', this.mediaGallery);
+
+        // Set main media to the first media item
+        if (this.mediaGallery.length > 0) {
+          this.mainMedia = this.mediaGallery[0];
+        } else {
+          this.mainMedia = 'assets/default-image.jpg';
+        }
       },
       error: () => {
         this.error = 'Failed to load apartment';
       }
     });
   }
+  
+  
 
   loadPotentialUsers(): void {
     this.apiService.getPotentialBuyersOrTenants().subscribe({
@@ -162,11 +179,19 @@ export class ApartmentDetailsComponent implements OnInit {
     });
   }
   
-  
 
-  changeMainPhoto(photo: string): void {
-    this.mainPhoto = photo;
+  // changeMainPhoto(photo: string): void {
+  //   this.mainPhoto = photo;
+  // }
+
+  changeMainMedia(media: string): void {
+    this.mainMedia = media;
   }
+  
+  isVideo(media: string): boolean {
+    return media.endsWith('.mp4') || media.includes('/video');
+  }
+  
 
   goBack(): void {
     window.history.back();

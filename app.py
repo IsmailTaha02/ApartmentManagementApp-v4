@@ -220,9 +220,12 @@ def get_user_apartments(user_id):
     } for apt in apartments])
 
 
+from sqlalchemy import or_
 ###Route to get all apartments and apply filters on them
 @app.route('/apartments')
 def get_apartments():
+
+    # owner_id = request.args.get('user_id', type=int)
     price_min = request.args.get('price_min', type=int)
     price_max = request.args.get('price_max', type=int)
     city = request.args.get('city', type=str)
@@ -234,6 +237,8 @@ def get_apartments():
     status = request.args.get('status', type=str)
     query = Apartment.query
 
+    # if owner_id:
+    #     query = query.filter(Apartment.owner_id.ilike(f'%{owner_id}%'))
     if status:
         query = query.filter(Apartment.status.ilike(f'%{status}%'))
     if apt_type:
@@ -243,9 +248,12 @@ def get_apartments():
     if price_max:
         query = query.filter(Apartment.price <= price_max)
     if city:
-        query = query.filter(Apartment.city.ilike(f'%{city}%'))
+       query = query.filter(Apartment.city.ilike(f'%{city}%'))
     if location:
-        query = query.filter(Apartment.location.ilike(f'%{location}%'))
+        query = query.filter(or_(
+            Apartment.city.ilike(f'%{location}%'),
+            Apartment.location.ilike(f'%{location}%')
+        ))
     if area_min:
         query = query.filter(Apartment.area >= area_min)
     if area_max:

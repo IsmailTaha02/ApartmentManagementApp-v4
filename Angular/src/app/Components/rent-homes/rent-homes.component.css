@@ -1,42 +1,98 @@
-.header-text {
-  margin-top: 50px;
-  text-align: center;
-  color: #272424;
+.hero-banner {
+  margin-top: 90px;
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  /* object-fit: contain; shows the full image */
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.hero-overlay {
+  z-index: 2;
+  position: relative;
+  text-align: center;
+  color: white;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.4); /* optional gradient overlay */
+  border-radius: 12px;
+}
+
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+}
+
+
 
 /* Filter Section */
 .filter-bar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  flex-wrap: wrap; /* allow wrap if needed */
+  gap: 16px; /* spacing between filters */
   padding: 15px 20px;
+  margin: 50px 50px 40px;
   background-color: #ffffff;
+  border: 2px solid #e3dede;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  margin-left: 50px;
-  margin-right: 50px;
-  margin-top: 30px;
-  margin-bottom: 20px;
-  border: 2px solid #e3dede; 
 }
 
+/* Filter Section */
 .filter {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  width: 18%; /* Control the width of each filter */
-  border: 1px solid #7a7a7a; 
+  gap: 6px;
+  width: 17%;
 }
 
+.filter input,
 .filter select {
   padding: 8px;
   font-size: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   border-radius: 5px;
   width: 100%;
+  box-sizing: border-box;
 }
 
-.filter select:focus {
-  border-color: #007bff;
+.filter input:focus {
+  border-color: #3f51b5;
+  outline: none;
+}
+
+.reset-filters-btn {
+  background-color: #000000; /* red tone */
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  margin-left: auto; /* push to right */
+}
+
+.reset-filters-btn:hover {
+  background-color: #211c1c;
+  transform: scale(1.05);
 }
 
 .listing-section h2 {
@@ -44,7 +100,7 @@
   text-align: center;
   font-size: 2rem;
   font-weight: bold;
-  color: #3f51b5;
+  color: #263a6a;
   margin-bottom: 1.5rem;
   position: relative;
   display: inline-block;
@@ -53,9 +109,11 @@
 /* Apartment Cards Section */
 .apartment-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: 1.5rem;
   justify-content: center;
+  margin-left: 30px;
+  margin-right: 30px;
 }
 
 .apartment-card {
@@ -64,7 +122,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease-in-out;
-  border-left: 5px solid #3f51b5;
+  border-left: 5px solid #263a6a;
   cursor: pointer;
 }
 
@@ -114,7 +172,7 @@
 
 .view-details-btn {
   padding: 10px 20px;
-  background-color: #3f51b5;
+  background-color: #263a6a;
   color: white;
   border: none;
   border-radius: 8px;

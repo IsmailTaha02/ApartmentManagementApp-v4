@@ -9,15 +9,28 @@
 <div class="apartment-details-container" *ngIf="apartment"> 
   <!-- Top: Image & Thumbnails -->
   <div class="image-gallery">
-    <img [src]="mainPhoto" class="main-photo" alt="Apartment Image">
-    
-    <div class="thumbnail-container" *ngIf="apartment?.photos?.length > 1">
-      <img *ngFor="let photo of apartment.photos"
-           [src]="photo"
-           class="thumbnail"
-           (click)="changeMainPhoto(photo)">
+    <!-- Main Media Display -->
+    <ng-container *ngIf="mainMedia">
+      <img *ngIf="!isVideo(mainMedia)" [src]="mainMedia" class="main-photo" alt="Apartment Media">
+      <video *ngIf="isVideo(mainMedia)" class="main-photo" controls autoplay muted>
+        <source [src]="mainMedia" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </ng-container>
+  
+    <!-- Unified Thumbnails -->
+    <div class="thumbnail-container" *ngIf="mediaGallery.length > 0">
+      <ng-container *ngFor="let media of mediaGallery">
+        <img *ngIf="!isVideo(media)" [src]="media" class="thumbnail" (click)="changeMainMedia(media)" />
+        <video *ngIf="isVideo(media)" class="thumbnail" (click)="changeMainMedia(media)" muted>
+          <source [src]="media" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </ng-container>
     </div>
   </div>
+  
+  
 
   <!-- Bottom: Property + Owner Details -->
   <div class="details-content">

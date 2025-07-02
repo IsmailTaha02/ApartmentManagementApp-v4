@@ -13,6 +13,9 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./admin-apartments.component.scss']
 })
 export class AdminApartmentsComponent implements OnInit {
+
+  userId: number = Number(localStorage.getItem('user_id'));
+
   apartments: any[] = [];
   filteredApartments: any[] = [];
 
@@ -38,6 +41,7 @@ export class AdminApartmentsComponent implements OnInit {
   loadApartments(): void {
     let params = new HttpParams();
 
+    // if (this.userId) params = params.set('user_id', this.userId);
     if (this.typeFilter) params = params.set('type', this.typeFilter);
     if (this.unitNumber) params = params.set('unit_number', this.unitNumber);
     if (this.cityFilter) params = params.set('city', this.cityFilter);

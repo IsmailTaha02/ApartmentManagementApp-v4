@@ -1,58 +1,49 @@
 <app-header></app-header>
 
-<h2 class="header-text">Search for apartment to Rent based on your requirements</h2>
+<!-- Hero Section -->
+<div class="hero-banner">
+  <img src="/rent.jpeg" alt="Cover" class="hero-img" />
+  <div class="hero-overlay">
+    <h1 class="hero-title">Find Your Dream Apartment</h1>
+    <p class="hero-subtitle">Browse apartments that match your lifestyle and budget</p>
+  </div>
+</div>
+
 
 <!-- Filter Section -->
 <div class="filter-bar">
   <div class="filter">
-    <select id="priceMin" [(ngModel)]="filterPriceMin" (change)="applyFilters()">
-      <option [ngValue]="null">Min Price</option>
-      <option value="100">100</option>
-      <option value="500">500</option>
-      <option value="1000">1000</option>
-    </select>
-  </div>
-  
-  <div class="filter">
-    <select id="priceMax" [(ngModel)]="filterPriceMax" (change)="applyFilters()">
-      <option [ngValue]="null">Max Price</option>
-      <option value="1000">1000</option>
-      <option value="5000">5000</option>
-      <option value="10000">10000</option>
-    </select>
+    <label>Min Price</label>
+    <input type="number" [(ngModel)]="filterPriceMin" (input)="applyFilters()" placeholder="e.g. 1000" />
   </div>
 
   <div class="filter">
-    <select id="location" [(ngModel)]="filterLocation" (change)="applyFilters()">
-      <option [ngValue]="null">Location</option>
-      <option value="Chicago">Chicago</option>
-      <option value="New York">New York</option>
-      <option value="Los Angeles">Los Angeles</option>
-    </select>
+    <label>Max Price</label>
+    <input type="number" [(ngModel)]="filterPriceMax" (input)="applyFilters()" placeholder="e.g. 10000" />
   </div>
 
   <div class="filter">
-    <select id="areaMin" [(ngModel)]="filterAreaMin" (change)="applyFilters()">
-      <option [ngValue]="null">Min Area (sq ft)</option>
-      <option value="500">500</option>
-      <option value="1000">1,000</option>
-      <option value="1500">1,500</option>
-    </select>
+    <label>Location </label>
+    <input type="text" [(ngModel)]="filterLocation" (input)="applyFilters()" placeholder="e.g. Ramallah" />
   </div>
 
   <div class="filter">
-    <select id="areaMax" [(ngModel)]="filterAreaMax" (change)="applyFilters()">
-      <option [ngValue]="null">Max Area (sq ft)</option>
-      <option value="1000">1,000</option>
-      <option value="2000">2,000</option>
-      <option value="3000">3,000</option>
-    </select>
+    <label>Min Area (sq ft)</label>
+    <input type="number" [(ngModel)]="filterAreaMin" (input)="applyFilters()" placeholder="e.g. 500" />
   </div>
+
+  <div class="filter">
+    <label>Max Area (sq ft)</label>
+    <input type="number" [(ngModel)]="filterAreaMax" (input)="applyFilters()" placeholder="e.g. 3000" />
+  </div>
+
+  <button class="reset-filters-btn" (click)="resetFilters()">🔄 Reset Filters</button>
+
 </div>
 
 <!-- Apartment Listings Section -->
 <div class="listing-section">
-  <h2>Available apartments for rent</h2>
+  <!-- <h2>Available apartments for rent</h2> -->
   <div class="apartment-grid">
     <div class="apartment-card" *ngFor="let apartment of apartments">
       <div [routerLink]="['/apartment', apartment.id]" class="card-clickable">

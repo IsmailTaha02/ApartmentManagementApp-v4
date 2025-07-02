@@ -52,4 +52,13 @@ export class BuyHomesComponent implements OnInit {
       });
   }
   
+  resetFilters(): void {
+    this.filterPriceMin = null;
+    this.filterPriceMax = null;
+    this.filterLocation = null;
+    this.filterAreaMin = null;
+    this.filterAreaMax = null;
+    this.getApartments();
+  }
+  
 }

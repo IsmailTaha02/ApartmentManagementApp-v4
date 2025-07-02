@@ -51,4 +51,13 @@ export class RentHomesComponent implements OnInit {
         this.apartments = data;
       });
   }
+
+  resetFilters(): void {
+    this.filterPriceMin = null;
+    this.filterPriceMax = null;
+    this.filterLocation = null;
+    this.filterAreaMin = null;
+    this.filterAreaMax = null;
+    this.getApartments();
+  }
 }
