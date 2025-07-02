@@ -1,0 +1,137 @@
+<app-contract-topbar></app-contract-topbar>
+
+<div class="create-contract-container">
+  <h1>Create New Contract</h1>
+
+  <form (ngSubmit)="submitContract()" #contractForm="ngForm">
+
+    <!-- Contract Info Section -->
+    <div class="form-section">
+      <h2>Aprtment Information</h2>
+
+       <div class="form-row">
+        <!-- <div class="form-group">
+          <label>Contract Language</label>
+          <select [(ngModel)]="selectedLanguage" name="language">
+            <option value="ar">Arabic</option>
+            <option value="en">English</option>
+          </select>
+        </div>  -->
+
+        <div class="form-group">
+          <label>Apartment Type</label>
+          <select required [(ngModel)]="contractData.contract_type" name="contract_type" #type="ngModel">
+            <option *ngFor="let type of contractTypes" [value]="type">{{ type }}</option>
+          </select>
+          <div *ngIf="type.invalid && type.touched" class="error">Contract type is required</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Apartment</label>
+          <select required [(ngModel)]="contractData.apartment_id" name="apartment_id" #apartment="ngModel">
+            <option *ngFor="let apt of apartments" [value]="apt.id">{{ apt.location }} ({{ apt.unit_number }})</option>
+          </select>
+          <div *ngIf="apartment.invalid && apartment.touched" class="error">Apartment is required</div>
+        </div>
+
+        <div class="form-group">
+          <label>Apartment City</label>
+          <input required [(ngModel)]="contractData.apartment_city" name="apartment_city" />
+        </div>
+
+        <div class="form-group">
+          <label>Apartment Location</label>
+          <input required [(ngModel)]="contractData.apartment_location" name="apartment_location" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Parties Info Section -->
+    <div class="form-section">
+      <h2>Parties Information</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Owner (App Account)</label>
+          <select required [(ngModel)]="contractData.owner_id" name="owner_id" #owner="ngModel">
+            <option *ngFor="let user of owners" [value]="user.id">
+              {{ user.full_name }} ({{ user.email }})
+            </option>            
+          </select>
+          <div *ngIf="owner.invalid && owner.touched" class="error">Owner is required</div>
+        </div>
+
+        <div class="form-group">
+          <label>Owner Full Name</label>
+          <input required [(ngModel)]="contractData.owner_full_name" name="owner_full_name" />
+        </div>
+
+        <div class="form-group">
+          <label>Owner ID Number</label>
+          <input required [(ngModel)]="contractData.owner_id_number" name="owner_id_number" />
+        </div>
+
+        <div class="form-group">
+          <label>Owner Address</label>
+          <input required [(ngModel)]="contractData.owner_address" name="owner_address" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Buyer (App Account)</label>
+          <select required [(ngModel)]="contractData.buyer_id" name="buyer_id" #buyer="ngModel">
+            <option *ngFor="let user of buyers" [value]="user.id">
+              {{ user.full_name }} ({{ user.email }})
+            </option>
+            
+          </select>
+          <div *ngIf="buyer.invalid && buyer.touched" class="error">Buyer is required</div>
+        </div>
+
+        <div class="form-group">
+          <label>Buyer Full Name</label>
+          <input required [(ngModel)]="contractData.buyer_full_name" name="buyer_full_name" />
+        </div>
+
+        <div class="form-group">
+          <label>Buyer ID Number</label>
+          <input required [(ngModel)]="contractData.buyer_id_number" name="buyer_id_number" />
+        </div>
+
+        <div class="form-group">
+          <label>Buyer Address</label>
+          <input required [(ngModel)]="contractData.buyer_address" name="buyer_address" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Rent Amount</label>
+        <input type="number" required [(ngModel)]="contractData.rent_amount" name="rent_amount" />
+      </div>
+    
+      <div class="form-group">
+        <label>Currency</label>
+        <select required [(ngModel)]="contractData.currency" name="currency">
+          <option value="دينارأردني" >JD (دينار أردني) </option>
+          <option value="دولار">USD (دولار)</option>
+          <option value="شيكل">ILS (شيكل)</option>
+        </select>
+      </div>
+    
+      <div class="form-group">
+        <label>Due Date</label>
+        <input type="date" required [(ngModel)]="contractData.due_date" name="due_date" />
+      </div>
+    </div>
+    
+    <div class="submit-container">
+      <button type="submit" class="submit-btn" [disabled]="contractForm.invalid">Create Contract</button>
+    </div>
+
+  </form>
+</div>
