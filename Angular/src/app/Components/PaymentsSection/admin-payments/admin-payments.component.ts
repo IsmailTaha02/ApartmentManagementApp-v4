@@ -43,38 +43,31 @@ export class AdminPaymentsComponent implements OnInit {
         ...data.completed.map((p: any) => ({ ...p, status: 'Completed' }))
       ];
   
-      // Extract unique users
-      this.users = Array.from(
-        new Map(
-          this.payments
-            .filter(p => p.user)  // ignore nulls
-            .map(p => [p.user.id, p.user])
-        ).values()
-      );
-  
-      // Extract unique apartments
-      this.apartments = Array.from(
-        new Map(
-          this.payments
-            .filter(p => p.apartment)  // ignore nulls
-            .map(p => [p.apartment.id, p.apartment])
-        ).values()
-      );
-
       const monthsSet = new Set<string>();
-
       this.payments.forEach(p => {
         const date = new Date(p.due_date);
-        const monthLabel = date.toLocaleString('default', { month: 'long', year: 'numeric' }); // e.g. April 2025
+        const monthLabel = date.toLocaleString('default', { month: 'long', year: 'numeric' });
         monthsSet.add(monthLabel);
       });
-
       this.monthOptions = ['All', ...Array.from(monthsSet)];
-
-      this.applyFilter(); // Apply filters after loading
+  
+      this.applyFilter();
     });
+  
+    this.http.get<any[]>('http://localhost:5000/users').subscribe((data) => {
+      this.users = data;
+    });
+  
+    this.http.get<any[]>(`http://localhost:5000/apartments?status=Rented,Sold`).subscribe((data) => {
+      this.apartments = data.map(apt => ({
+        ...apt,
+        label: `${apt.location} (${apt.unit_number})`
+      }));
+    });
+    
   }
   
+
 
   applyFilter(): void {
     this.filteredPayments = this.payments.filter(p => {
@@ -117,30 +110,30 @@ export class AdminPaymentsComponent implements OnInit {
 
   showAddPaymentModal = false;
   newPayment: any = {
-    user_id: null,
+    // user_id: null,
     apartment_id: null,
     amount: null,
     currency: 'USD',
     due_date: '',
     paid_date: '',
-    status: 'Pending',
+    // status: 'Pending',
     markPaid: false,
     payment_method: '',
-    transaction_type: 'Rent'
+    // transaction_type: 'Rent'
   };
   
   formError: string = '';
 
   openAddPayment() {
     this.newPayment = {
-      user_id: null,
+      // user_id: null,
       apartment_id: null,
       amount: null,
       currency: 'USD',
       due_date: '',
       status: 'Pending',
       markPaid: false,
-      transaction_type: 'Rent'
+      // transaction_type: 'Rent'
     };
     this.formError = '';
     this.showAddPaymentModal = true;
@@ -162,7 +155,7 @@ export class AdminPaymentsComponent implements OnInit {
   
     const np = this.newPayment;
   
-    if (!np.user_id || !np.apartment_id || !np.amount || !np.due_date) {
+    if (!np.apartment_id || !np.amount || !np.due_date) {
       this.formError = 'Please fill in all required fields.';
       return;
     }
@@ -172,30 +165,26 @@ export class AdminPaymentsComponent implements OnInit {
       return;
     }
   
-    if (np.status === 'Completed') {
-      if (!np.markPaid && !np.paid_date) {
-        this.formError = 'Please select a paid date.';
-        return;
-      }
+    const today = new Date();
+    const dueDate = new Date(np.due_date);
   
-      if (!np.payment_method) {
-        this.formError = 'Please select a payment method.';
-        return;
-      }
+    let status = 'Pending';
+    if (np.markPaid || np.paid_date) {
+      status = 'Completed';
+    } else if (dueDate < today) {
+      status = 'Overdue';
     }
   
     const payload: any = {
-      user_id: np.user_id,
       apartment_id: np.apartment_id,
       amount: np.amount,
       currency: np.currency,
       due_date: np.due_date,
-      status: np.status,
-      transaction_type: np.transaction_type,
-      paid_date: np.status === 'Completed'
+      status: status,
+      paid_date: status === 'Completed'
         ? (np.markPaid ? new Date() : new Date(np.paid_date))
         : null,
-      payment_method: np.status === 'Completed' ? np.payment_method : null
+      payment_method: status === 'Completed' ? np.payment_method : null
     };
   
     this.http.post('http://localhost:5000/payments', payload).subscribe({
@@ -209,7 +198,8 @@ export class AdminPaymentsComponent implements OnInit {
         console.error(err);
       }
     });
-  }  
+  }
+  
 
   markAsCompleted(payment: any) {
     const confirmUpdate = confirm('Are you sure you want to mark this payment as completed?');

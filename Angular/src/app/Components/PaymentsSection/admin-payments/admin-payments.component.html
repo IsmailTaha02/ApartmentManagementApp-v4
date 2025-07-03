@@ -52,7 +52,7 @@
     <div class="payment-modal" (click)="$event.stopPropagation()">
       <h3>Add New Payment</h3>
 
-      <label>User *</label>
+      <!-- <label>User *</label>
       <ng-select
         [items]="users"
         bindLabel="full_name"
@@ -60,23 +60,23 @@
         [(ngModel)]="newPayment.user_id"
         placeholder="Select user"
         [searchable]="true"
-      ></ng-select>
+      ></ng-select> -->
 
       <label>Apartment *</label>
       <ng-select
         [items]="apartments"
-        bindLabel="location"
+        bindLabel="label"
         bindValue="id"
         [(ngModel)]="newPayment.apartment_id"
         placeholder="Select apartment"
         [searchable]="true"
       ></ng-select>
 
-      <label>Type *</label>
+      <!-- <label>Type *</label>
       <select [(ngModel)]="newPayment.transaction_type">
         <option value="Rent">Rent</option>
         <option value="Sale">Sale</option>
-      </select>
+      </select> -->
 
       <label>Amount *</label>
       <input type="number" [(ngModel)]="newPayment.amount" />
@@ -90,14 +90,14 @@
       <label>Due Date *</label>
       <input type="date" [(ngModel)]="newPayment.due_date" />
 
-      <label>Status</label>
+      <!-- <label>Status</label>
       <select [(ngModel)]="newPayment.status">
         <option value="Pending">Pending</option>
         <option value="Completed">Completed</option>
         <option value="Overdue">Overdue</option>
-      </select>
+      </select> -->
 
-      <div *ngIf="newPayment.status === 'Completed'" class="completed-section">
+      <div class="completed-section">
         <div class="inline-checkbox">
           <input
             type="checkbox"
@@ -107,20 +107,18 @@
           />
           <label for="markPaidCheckbox">Mark as Paid Now</label>
         </div>
-        
-
+      
         <!-- Paid date (only if not marked as paid now) -->
         <div *ngIf="!newPayment.markPaid" class="paid-date-wrapper">
           <label>Paid Date</label>
           <input
             type="date"
             [(ngModel)]="newPayment.paid_date"
-            required
           />
         </div>
-
-        <!-- Payment method -->
-        <div class="payment-method-wrapper">
+      
+        <!-- Payment method (only if paid) -->
+        <div *ngIf="newPayment.markPaid || newPayment.paid_date" class="payment-method-wrapper">
           <label>Payment Method</label>
           <select [(ngModel)]="newPayment.payment_method" required>
             <option value="">Select</option>
@@ -129,8 +127,8 @@
             <option value="Cash">Cash</option>
           </select>
         </div>
-
       </div>
+      
 
       <div *ngIf="formError" class="form-error">{{ formError }}</div>
 

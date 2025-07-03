@@ -240,7 +240,8 @@ def get_apartments():
     # if owner_id:
     #     query = query.filter(Apartment.owner_id.ilike(f'%{owner_id}%'))
     if status:
-        query = query.filter(Apartment.status.ilike(f'%{status}%'))
+        status_list = status.split(',')
+        query = query.filter(Apartment.status.in_(status_list))
     if apt_type:
         query = query.filter(Apartment.type.ilike(f'%{apt_type}%'))
     if price_min:
@@ -293,8 +294,6 @@ def get_apartments():
     return jsonify(result)
 
 
-
-
 ###Route to get spsfc app
 @app.route('/apartments/<int:id>', methods=['GET'])
 def get_apartment(id):
@@ -331,6 +330,148 @@ def get_apartment(id):
     })
 
 
+############### New route to update an apartment #################
+@app.route('/apartments/<int:id>', methods=['PUT'])
+def update_apartment(id):
+    apartment = Apartment.query.get_or_404(id)
+
+    # Extract form fields
+    location = request.form.get('location')
+    city = request.form.get('city')
+    unit_number = request.form.get('unit_number')
+    area = request.form.get('area', type=float)
+    number_of_rooms = request.form.get('number_of_rooms', type=int)
+    apt_type = request.form.get('type')
+    description = request.form.get('description')
+    price = request.form.get('price', type=int)
+    status = request.form.get('status')
+
+    apartment.location = location or apartment.location
+    apartment.city = city or apartment.city
+    apartment.unit_number = unit_number or apartment.unit_number
+    apartment.area = area or apartment.area
+    apartment.number_of_rooms = number_of_rooms or apartment.number_of_rooms
+    apartment.type = apt_type or apartment.type
+    apartment.description = description or apartment.description
+    apartment.price = price or apartment.price
+    apartment.status = status or apartment.status
+
+    # --- Handle new image uploads ---
+    new_photos = []
+    if 'new_images' in request.files:
+        files = request.files.getlist('new_images')
+        for file in files:
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                unique_name = f"{uuid.uuid4()}_{filename}"
+                save_path = os.path.join(UPLOAD_FOLDER, unique_name)
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                file.save(save_path)
+
+                # Convert to web-safe path
+                photo_url = f"/{UPLOAD_FOLDER}/{unique_name}".replace('\\', '/')
+                new_photos.append(photo_url)
+
+
+    # --- Handle existing photos sent from client ---
+    existing_photos = request.form.get('existing_photos')
+    if existing_photos:
+        try:
+            import json
+            existing_photos = json.loads(existing_photos)
+            existing_photos = [
+                photo.replace("http://localhost:5000", "") for photo in existing_photos
+            ]
+        except:
+            existing_photos = []
+    else:
+        existing_photos = []
+
+    apartment.photos = existing_photos + new_photos
+
+    db.session.commit()
+
+    return jsonify({'message': 'Apartment updated successfully'})
+
+
+
+############### New route to ADD an apartment #################
+@app.route('/apartments', methods=['POST'])
+def add_apartment():
+    
+    location = request.form.get('location')
+    city = request.form.get('city')
+    unit_number = request.form.get('unit_number')
+    area = request.form.get('area', type=float)
+    number_of_rooms = request.form.get('number_of_rooms', type=int)
+    apt_type = request.form.get('type')
+    description = request.form.get('description')
+    price = request.form.get('price', type=int)
+    status = request.form.get('status', default='Available')
+    owner_id = request.form.get('owner_id', type=int)
+
+    # Validate required fields
+    if not all([location, unit_number, area, number_of_rooms, apt_type, price, status]):
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    # Handle photo uploads
+    uploaded_photos = []
+    if 'photos' in request.files:
+        files = request.files.getlist('photos')
+        for file in files:
+            if file:
+                filename = secure_filename(file.filename)
+                unique_name = f"{uuid.uuid4()}_{filename}"
+                save_path = os.path.join(UPLOAD_FOLDER, unique_name)
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                file.save(save_path)
+                # Convert to web-safe path
+                photo_url = f"/{UPLOAD_FOLDER}/{unique_name}".replace('\\', '/')
+                uploaded_photos.append(photo_url)
+
+    # Create apartment instance
+    new_apartment = Apartment(
+        owner_id=owner_id,
+        location=location,
+        city=city,
+        unit_number=unit_number,
+        area=area,
+        number_of_rooms=number_of_rooms,
+        type=apt_type,
+        description=description,
+        price=price,
+        status=status,
+        photos=uploaded_photos
+    )
+
+    db.session.add(new_apartment)
+    db.session.commit()
+
+    return jsonify({'message': 'Apartment added successfully', 'id': new_apartment.id}), 201
+
+
+###Route to delete an apartment
+@app.route('/apartments/<int:id>', methods=['DELETE'])
+def delete_apartment(id):
+    apartment = Apartment.query.get_or_404(id)
+
+    # Optionally: delete photo files from disk
+    for photo in apartment.photos or []:
+        try:
+            photo_path = os.path.join('.', photo.lstrip('/'))
+            if os.path.exists(photo_path):
+                os.remove(photo_path)
+        except Exception as e:
+            logger.warning(f"Could not delete file {photo}: {str(e)}")
+
+    db.session.delete(apartment)
+    db.session.commit()
+
+    return jsonify({'message': 'Apartment deleted successfully'}), 200
+
+
+
+###############Maintinace Routes###############################333
 @app.route('/api/maintenance-requests', methods=['GET'])
 def get_maintenance_requests():
     category = request.args.get('category')
@@ -779,145 +920,6 @@ def login():
 
 
 
-############### New route to update an apartment #################
-@app.route('/apartments/<int:id>', methods=['PUT'])
-def update_apartment(id):
-    apartment = Apartment.query.get_or_404(id)
-
-    # Extract form fields
-    location = request.form.get('location')
-    city = request.form.get('city')
-    unit_number = request.form.get('unit_number')
-    area = request.form.get('area', type=float)
-    number_of_rooms = request.form.get('number_of_rooms', type=int)
-    apt_type = request.form.get('type')
-    description = request.form.get('description')
-    price = request.form.get('price', type=int)
-    status = request.form.get('status')
-
-    apartment.location = location or apartment.location
-    apartment.city = city or apartment.city
-    apartment.unit_number = unit_number or apartment.unit_number
-    apartment.area = area or apartment.area
-    apartment.number_of_rooms = number_of_rooms or apartment.number_of_rooms
-    apartment.type = apt_type or apartment.type
-    apartment.description = description or apartment.description
-    apartment.price = price or apartment.price
-    apartment.status = status or apartment.status
-
-    # --- Handle new image uploads ---
-    new_photos = []
-    if 'new_images' in request.files:
-        files = request.files.getlist('new_images')
-        for file in files:
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                unique_name = f"{uuid.uuid4()}_{filename}"
-                save_path = os.path.join(UPLOAD_FOLDER, unique_name)
-                os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                file.save(save_path)
-
-                # Convert to web-safe path
-                photo_url = f"/{UPLOAD_FOLDER}/{unique_name}".replace('\\', '/')
-                new_photos.append(photo_url)
-
-
-    # --- Handle existing photos sent from client ---
-    existing_photos = request.form.get('existing_photos')
-    if existing_photos:
-        try:
-            import json
-            existing_photos = json.loads(existing_photos)
-            existing_photos = [
-                photo.replace("http://localhost:5000", "") for photo in existing_photos
-            ]
-        except:
-            existing_photos = []
-    else:
-        existing_photos = []
-
-    apartment.photos = existing_photos + new_photos
-
-    db.session.commit()
-
-    return jsonify({'message': 'Apartment updated successfully'})
-
-
-
-############### New route to ADD an apartment #################
-@app.route('/apartments', methods=['POST'])
-def add_apartment():
-    
-    location = request.form.get('location')
-    city = request.form.get('city')
-    unit_number = request.form.get('unit_number')
-    area = request.form.get('area', type=float)
-    number_of_rooms = request.form.get('number_of_rooms', type=int)
-    apt_type = request.form.get('type')
-    description = request.form.get('description')
-    price = request.form.get('price', type=int)
-    status = request.form.get('status', default='Available')
-    owner_id = request.form.get('owner_id', type=int)
-
-    # Validate required fields
-    if not all([location, unit_number, area, number_of_rooms, apt_type, price, status]):
-        return jsonify({'error': 'Missing required fields'}), 400
-
-    # Handle photo uploads
-    uploaded_photos = []
-    if 'photos' in request.files:
-        files = request.files.getlist('photos')
-        for file in files:
-            if file:
-                filename = secure_filename(file.filename)
-                unique_name = f"{uuid.uuid4()}_{filename}"
-                save_path = os.path.join(UPLOAD_FOLDER, unique_name)
-                os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                file.save(save_path)
-                # Convert to web-safe path
-                photo_url = f"/{UPLOAD_FOLDER}/{unique_name}".replace('\\', '/')
-                uploaded_photos.append(photo_url)
-
-    # Create apartment instance
-    new_apartment = Apartment(
-        owner_id=owner_id,
-        location=location,
-        city=city,
-        unit_number=unit_number,
-        area=area,
-        number_of_rooms=number_of_rooms,
-        type=apt_type,
-        description=description,
-        price=price,
-        status=status,
-        photos=uploaded_photos
-    )
-
-    db.session.add(new_apartment)
-    db.session.commit()
-
-    return jsonify({'message': 'Apartment added successfully', 'id': new_apartment.id}), 201
-
-
-###Route to delete an apartment
-@app.route('/apartments/<int:id>', methods=['DELETE'])
-def delete_apartment(id):
-    apartment = Apartment.query.get_or_404(id)
-
-    # Optionally: delete photo files from disk
-    for photo in apartment.photos or []:
-        try:
-            photo_path = os.path.join('.', photo.lstrip('/'))
-            if os.path.exists(photo_path):
-                os.remove(photo_path)
-        except Exception as e:
-            logger.warning(f"Could not delete file {photo}: {str(e)}")
-
-    db.session.delete(apartment)
-    db.session.commit()
-
-    return jsonify({'message': 'Apartment deleted successfully'}), 200
-
 
 ################Payments Route#######################
 @app.route('/payments')
@@ -978,18 +980,16 @@ def create_payment():
     try:
         data = request.get_json()
 
-        user_id = data.get('user_id')
         apartment_id = data.get('apartment_id')
         amount = data.get('amount')
-        currency = data.get('currency')  # Currently unused unless you add it to DB
+        currency = data.get('currency') or 'USD'
         due_date_str = data.get('due_date')
         paid_date_str = data.get('paid_date')
         status = data.get('status')
         payment_method = data.get('payment_method')
-        transaction_type=data.get('transaction_type')
+        transaction_type = data.get('transaction_type')
 
-        # Validate required fields
-        if not all([user_id, apartment_id, amount, due_date_str, status]):
+        if not all([apartment_id, amount, due_date_str, status]):
             return jsonify({'error': 'Missing required fields'}), 400
 
         due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
@@ -1001,20 +1001,42 @@ def create_payment():
             except ValueError:
                 return jsonify({'error': 'Invalid paid_date format'}), 400
 
-        # Create Transaction
+        # ➤ Get the user_id for this apartment (e.g., latest transaction)
+        latest_transaction = Transaction.query.filter_by(apartment_id=apartment_id).order_by(Transaction.created_at.desc()).first()
+        if not latest_transaction:
+            return jsonify({'error': 'No user found for this apartment'}), 404
+
+        user_id = latest_transaction.user_id
+
+         # ➤ Get apartment type (Rent / Sale)
+        apartment = Apartment.query.get(apartment_id)
+        if not apartment:
+            return jsonify({'error': 'Apartment not found'}), 404
+
+        if apartment.type == "For Sale":
+            transaction_type = "Sale"
+        elif apartment.type == "For Rent":
+            transaction_type = "Rent"
+        else:
+            # Optional: log unexpected types
+            print(f"Warning: Unknown apartment type '{apartment.type}'. Defaulting to Rent.")
+            transaction_type = "Rent"
+
+
+        # ➤ Create Transaction
         transaction = Transaction(
             apartment_id=apartment_id,
             user_id=user_id,
             amount=amount,
             status=status,
-            currency=currency or 'USD',
+            currency=currency,
             payment_method=payment_method if status == 'Completed' else None,
-            transaction_type=data.get('transaction_type')
+            transaction_type=transaction_type
         )
         db.session.add(transaction)
-        db.session.flush()  # So we can get transaction.id before commit
+        db.session.flush()  # Get transaction.id
 
-        # Create Payment
+        # ➤ Create Payment
         payment = Payment(
             transaction_id=transaction.id,
             amount=amount,
@@ -1031,7 +1053,7 @@ def create_payment():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-    
+
 
 @app.route('/payments/<int:payment_id>', methods=['PUT'])
 def update_payment_status(payment_id):

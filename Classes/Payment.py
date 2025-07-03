@@ -8,7 +8,7 @@ class Payment(db.Model):
     amount = db.Column(db.Numeric(12, 2))
     due_date = db.Column(db.DateTime)
     paid_date = db.Column(db.DateTime)
-    status = db.Column(db.Enum('Pending', 'Completed'))
+    status = db.Column(db.Enum('Pending', 'Completed','Overdue'))
 
     def __repr__(self):
         return f'<Payment {self.id}>'
